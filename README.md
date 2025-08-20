@@ -4,11 +4,12 @@ Este documento detalha a arquitetura, componentes e fluxos de trabalho do projet
 
 ## Visão Geral
 
-O projeto é um agente de IA conversacional modular projetado para:
-1.  **Responder a perguntas** com base em uma base de conhecimento pré-definida (`qa_data.py`).
-2.  Utilizar um **modelo de Machine Learning** simples para classificação de intenção quando uma correspondência exata não é encontrada.
-3.  **Sintetizar respostas em áudio (TTS)** de forma assíncrona, com cache para baixa latência.
-4.  Opcionalmente, **analisar o próprio código-fonte do projeto** para responder a perguntas sobre seu funcionamento, usando uma pipeline de **Retrieval-Augmented Generation (RAG)**.
+O projeto é um agente de IA conversacional modular e extensível, projetado para interagir com usuários através de texto e voz. Suas principais funcionalidades incluem:
+
+1.  **Gerenciamento de Conhecimento**: Responde a perguntas utilizando uma base de conhecimento flexível, que pode ser carregada de um cache local, dados embutidos ou dinamicamente de uma **API externa** (configurável via `qa_data.py`).
+2.  **Processamento de Linguagem Natural (PLN)**: Emprega um modelo de Machine Learning local para classificação de intenção, permitindo respostas inteligentes mesmo para perguntas não exatas.
+3.  **Síntese de Voz (TTS)**: Converte respostas textuais em áudio de forma assíncrona, utilizando bibliotecas como `edge-tts` ou `pyttsx3`, com um sistema de cache (`tts_cache/`) para garantir baixa latência e eficiência na reprodução.
+4.  **Geração Aumentada por Recuperação (RAG)**: Opcionalmente, pode analisar e responder a perguntas complexas sobre bases de código (incluindo seu próprio código-fonte ou projetos externos), integrando-se a Large Language Models (LLMs) como OpenAI ou Google Gemini para gerar respostas contextuais.
 
 ---
 
