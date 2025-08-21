@@ -21,32 +21,42 @@ try:
     import asyncio
     import edge_tts
     EDGE_TTS_AVAILABLE = True
+    print("INFO: Usando edge-tts para síntese de voz.")
 except Exception:
     EDGE_TTS_AVAILABLE = False
+    print("AVISO: edge-tts não encontrado, tentando fallback.")
 
 # fallback para pyttsx3 se edge-tts não estiver disponível
 try:
     import pyttsx3
     PYTTSX3_AVAILABLE = True
+    print("INFO: pyttsx3 encontrado como fallback.")
 except Exception:
     PYTTSX3_AVAILABLE = False
+    print("ERRO: Nenhum motor de TTS (edge-tts, pyttsx3) disponível.")
 
 # escolher player disponível para reproduzir mp3 gerado (se necessário)
 _player = None
 for cmd in ("mpg123", "ffplay", "afplay", "mpv", "vlc"):
     if shutil.which(cmd):
         _player = cmd
+        print(f"INFO: Reprodutor de áudio encontrado: {_player}")
         break
+
+if not _player:
+    print("AVISO: Nenhum reprodutor de áudio (mpg123, ffplay, etc.) encontrado. A reprodução pode falhar.")
 
 # inicializar pyttsx3 uma vez (fallback)
 _engine = None
 if PYTTSX3_AVAILABLE and not EDGE_TTS_AVAILABLE:
+    print("INFO: Inicializando motor pyttsx3...")
     _engine = pyttsx3.init()
     for voice in _engine.getProperty('voices'):
         if 'pt' in voice.id.lower() or 'portuguese' in voice.name.lower():
             _engine.setProperty('voice', voice.id)
             break
     _engine.setProperty('rate', 160)
+    print("INFO: Motor pyttsx3 inicializado.")
 
 _speech_queue = queue.Queue()
 
@@ -80,9 +90,10 @@ def _play_file_with_player(path: str):
         cmd = [_player, path]
 
     try:
-        subprocess.run(cmd, check=False)
-    except Exception:
-        pass
+        print(f"INFO: Executando comando de áudio: {' '.join(cmd)}")
+        subprocess.run(cmd, check=False, capture_output=True, text=True)
+    except Exception as e:
+        print(f"ERRO: Falha ao executar o reprodutor de áudio: {e}")
 
 async def _edge_tts_save(text: str, path: str, voice: str = "pt-BR-FranciscaNeural"):
     communicate = edge_tts.Communicate(text, voice)
@@ -139,20 +150,24 @@ def _speech_worker():
                         try:
                             os.replace(mp3_path, cached)
                             _play_file_with_player(cached)
-                        except Exception:
+                        except Exception as e_replace:
+                            print(f"AVISO: Falha ao mover áudio para o cache: {e_replace}")
                             _play_file_with_player(mp3_path)
                             try:
                                 os.remove(mp3_path)
                             except Exception:
                                 pass
                     except Exception as e:
+                        print(f"ERRO: Falha na síntese com edge-tts: {e}")
                         if _engine:
+                            print("INFO: Tentando fallback para pyttsx3...")
                             _engine.say(texto)
                             _engine.runAndWait()
                         else:
-                            print("Erro TTS:", e)
+                            print("ERRO TTS: Nenhum motor de fallback disponível.", e)
                 else:
                     if _engine:
+                        print("INFO: Usando pyttsx3 para falar.")
                         _engine.say(texto)
                         _engine.runAndWait()
                     else:
