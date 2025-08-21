@@ -8,7 +8,12 @@ import json
 import textwrap
 from typing import List
 
-from rag_query import query
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from services.rag_query import query
 
 # LLM client: usa OpenAI por exemplo (opcional)
 try:
