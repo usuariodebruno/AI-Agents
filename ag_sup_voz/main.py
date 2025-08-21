@@ -16,6 +16,7 @@ import tempfile
 import subprocess
 import hashlib
 import sys
+import time
 
 # tentar edge-tts para voz neural mais natural
 try:
@@ -186,31 +187,45 @@ def falar(texto: str):
 
 def main():
     service_name = os.environ.get("SERVICE_NAME", "este projeto")
-    mensagem_boas_vindas = f"Olá, no que posso ajudar sobre o {service_name}?"
+    mensagem_boas_vindas = f"Olá! Para interagir, aguarde o aviso sonoro e faça sua pergunta. Diga 'sair' para encerrar."
     
     print(mensagem_boas_vindas)
     falar(mensagem_boas_vindas)
-    
+    _speech_queue.join() # Espera a mensagem de boas-vindas terminar
+
     while True:
-        texto_usuario = input("Digite sua pergunta (ou 'sair' para encerrar): ")
+        # --- Melhoria no Fluxo de Voz ---
+        time.sleep(0.5) # Pequena pausa
+        falar("Estou te ouvindo. Por favor, faça sua pergunta.")
+        _speech_queue.join() # Espera a fala "Estou te ouvindo" terminar
+
+        texto_usuario = get_audio_input() # TODO: Implementar captura de áudio
+
+        if texto_usuario is None: # Continua o loop se a captura de áudio falhar
+            continue
         
-        if texto_usuario.lower() in ["sair", "exit", "quit"]:
+        if texto_usuario.lower().strip() in ["sair", "exit", "quit"]:
             print("Encerrando...")
+            falar("Até logo!")
+            _speech_queue.join()
             break
         
         resposta, sugestoes = responder(texto_usuario)
         print("Resposta:", resposta)
-        falar(resposta)  # Fala apenas a resposta principal
+        falar(resposta)  # Enfileira a resposta principal para ser falada
 
         if sugestoes:
             print("\nSugestões para aprofundar:")
             sugestoes_texto = "Aqui estão algumas sugestões para aprofundar: "
             for i, sug in enumerate(sugestoes):
                 print(f"- {sug}")
-                sugestoes_texto += f" {i+1}: {sug}." # Constrói a frase para ser falada
+                sugestoes_texto += f" {i+1}: {sug}."
             
             falar(sugestoes_texto) # Enfileira as sugestões para serem faladas
-            print() # Adiciona uma linha em branco para espaçamento
+            print() 
+        
+        # Espera a fila de fala esvaziar antes de continuar o loop
+        _speech_queue.join()
 
 if __name__ == "__main__":
     main()
