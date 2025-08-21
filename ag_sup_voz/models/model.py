@@ -10,8 +10,8 @@ import numpy as np
 import sys
 
 from data.qa_data import qa_pairs
-from core.utils import criar_tokenizer, texto_para_sequencia
-from services.rag_query import query as rag_query
+from training.utils import criar_tokenizer, texto_para_sequencia
+from rag.query import query as rag_query
 
 # Adicionando o diretório raiz do projeto ao sys.path para corrigir problemas de importação relativa após a modularização.
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -89,7 +89,6 @@ Etapa 4.  Após preencher tudo, revise as informações e clique no botão verde
 {question}
 
 """
-# --- Fim da Configuração RAG ---
 
 # Tentar carregar artefatos salvos
 MODEL_PATH = "models/model.h5"

@@ -157,7 +157,7 @@ Use este comando para fazer o agente analisar seu próprio código-fonte. O `.` 
 
 ```bash
 # Rode o indexador no diretório atual
-python training/rag_index.py .
+python rag/index.py .
 ```
 
 **Opção B: Indexar um Projeto Externo**
@@ -166,7 +166,7 @@ Para fazer o agente analisar **outro sistema**, substitua `.` pelo caminho compl
 
 ```bash
 # Exemplo: Indexando um projeto localizado em /home/usuario/projetos/meu-sistema
-python training/rag_index.py /home/usuario/projetos/meu-sistema
+python rag/index.py /home/usuario/projetos/meu-sistema
 ```
 
 Isso irá ler os arquivos do outro projeto e **sobrescrever** os arquivos `data/index.faiss` e `data/meta.json` com a nova base de conhecimento. Execute este comando sempre que o código-fonte que você quer analisar for alterado significativamente.
@@ -180,7 +180,7 @@ Com os artefatos prontos, inicie a aplicação principal.
 source .venv/bin/activate
 
 # Inicie o agente
-python core/main.py
+python main.py
 ```
 
 ---
@@ -235,29 +235,29 @@ GEMINI_API_KEY="sua-chave-gemini-aqui"
 
 ---
 
-### Estrutura de Diretórios
+## Estrutura de Diretórios
 
 A estrutura de diretórios foi organizada para separar as responsabilidades e facilitar a manutenção:
 
--   `core/`: Contém a lógica principal e a orquestração do agente.
-    -   `main.py`: Ponto de entrada da aplicação, responsável pelo loop de interação com o usuário e pela interface de linha de comando (CLI).
-    -   `rag_pipeline.py`: Orquestra o pipeline de Geração Aumentada por Recuperação (RAG), montando o prompt e consultando o LLM.
-    -   `utils.py`: Funções utilitárias compartilhadas.
--   `services/`: Módulos que fornecem serviços específicos.
-    -   `get_audio.py`: (Se aplicável) Lógica para captura de áudio.
-    -   `rag_query.py`: Serviço para consultar o índice vetorial FAISS e recuperar chunks de texto relevantes.
+-   `main.py`: Ponto de entrada da aplicação, responsável pelo loop de interação com o usuário e pela interface de linha de comando (CLI).
+-   `rag/`: Módulo contendo toda a lógica de Geração Aumentada por Recuperação (RAG).
+    -   `__init__.py`: Torna o diretório um pacote Python.
+    -   `pipeline.py`: Orquestra o pipeline RAG, montando o prompt e consultando o LLM.
+    -   `query.py`: Serviço para consultar o índice vetorial FAISS.
+    -   `index.py`: Script para criar o índice FAISS a partir de uma base de código.
 -   `models/`: Contém os artefatos e a lógica do modelo de Machine Learning.
     -   `model.h5`: O modelo de classificação de intenção treinado.
     -   `tokenizer.json`: O tokenizer para o modelo.
-    -   `meta.json`: Metadados associados ao modelo ou ao índice RAG.
     -   `model.py`: Carrega o modelo e o tokenizer, e contém a função `responder()` que encapsula a lógica de decisão.
 -   `data/`: Armazena os dados utilizados pelo agente.
     -   `index.faiss`: O índice vetorial para o RAG.
+    -   `meta.json`: Metadados associados ao índice RAG.
     -   `qa_data.py`: A base de conhecimento principal (perguntas e respostas).
     -   `respostas.json`: Cache das respostas para acesso rápido.
--   `training/`: Scripts para treinamento de modelos e criação de índices.
+-   `training/`: Scripts para treinamento de modelos.
     -   `train.py`: Script para treinar o modelo de classificação de intenção.
-    -   `rag_index.py`: Script para criar o índice FAISS a partir de uma base de código.
+    -   `utils.py`: Funções utilitárias para o treinamento.
+-   `services/`: Módulos que fornecem serviços específicos (ex: captura de áudio).
 -   `tts_cache/`: Diretório de cache para os arquivos de áudio sintetizados.
 -   `__pycache__/`: Cache de bytecode do Python.
 -   `requirements.txt`: Dependências do projeto.

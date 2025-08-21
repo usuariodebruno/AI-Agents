@@ -12,7 +12,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from data.qa_data import qa_pairs
-from core.utils import criar_tokenizer, texto_para_sequencia
+from training.utils import criar_tokenizer, texto_para_sequencia
 
 # Preparar tokenizer e dados
 tokenizer = criar_tokenizer(qa_pairs)
