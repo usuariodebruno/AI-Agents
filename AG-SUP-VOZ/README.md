@@ -138,9 +138,9 @@ Para evitar o treinamento lento durante a inicialização, gere os artefatos do 
 source .venv/bin/activate
 
 # Execute o script de treino
-python train.py
+python training/train.py
 ```
-Isso criará `model.h5`, `tokenizer.json` e `respostas.json`.
+Isso criará `models/model.h5`, `models/tokenizer.json` e `data/respostas.json`.
 
 #### 2. Indexar a Base de Código (RAG)
 
@@ -157,7 +157,7 @@ Use este comando para fazer o agente analisar seu próprio código-fonte. O `.` 
 
 ```bash
 # Rode o indexador no diretório atual
-python rag_index.py . --model "all-MiniLM-L6-v2" --chunk-size 600
+python training/rag_index.py .
 ```
 
 **Opção B: Indexar um Projeto Externo**
@@ -166,10 +166,10 @@ Para fazer o agente analisar **outro sistema**, substitua `.` pelo caminho compl
 
 ```bash
 # Exemplo: Indexando um projeto localizado em /home/usuario/projetos/meu-sistema
-python rag_index.py /home/usuario/projetos/meu-sistema
+python training/rag_index.py /home/usuario/projetos/meu-sistema
 ```
 
-Isso irá ler os arquivos do outro projeto e **sobrescrever** os arquivos `index.faiss` e `meta.json` com a nova base de conhecimento. Execute este comando sempre que o código-fonte que você quer analisar for alterado significativamente.
+Isso irá ler os arquivos do outro projeto e **sobrescrever** os arquivos `data/index.faiss` e `data/meta.json` com a nova base de conhecimento. Execute este comando sempre que o código-fonte que você quer analisar for alterado significativamente.
 
 #### 3. Executar o Agente
 
@@ -180,20 +180,20 @@ Com os artefatos prontos, inicie a aplicação principal.
 source .venv/bin/activate
 
 # Inicie o agente
-python main.py
+python core/main.py
 ```
 
 ---
 
 ## Detalhamento dos Componentes
 
--   `main.py`: Ponto de entrada. Gerencia o loop de interação com o usuário, chama o modelo para obter respostas e coordena a síntese e reprodução de áudio de forma assíncrona.
--   `model.py`: Orquestra a lógica de resposta. Carrega o modelo treinado e implementa a cascata de fallbacks (busca direta -> modelo ML -> RAG).
--   `train.py`: Script offline para treinar o modelo de classificação Keras e salvar os artefatos.
--   `qa_data.py`: Gerencia a base de conhecimento. Carrega pares de pergunta/resposta de um dicionário local, de um cache (`qa_cache.json`) ou de uma API externa (configurada via `QA_API_URL`).
--   `rag_index.py`: Ferramenta para ler os arquivos do projeto, dividi-los em pedaços (`chunks`), gerar embeddings vetoriais e construir o índice de busca (`index.faiss`).
--   `rag_query.py`: Fornece a função `query()` para realizar uma busca de similaridade no índice FAISS e retornar os `chunks` de texto mais relevantes.
--   `rag_pipeline.py`: Conecta a busca (RAG) a um Large Language Model (LLM) como o GPT da OpenAI para gerar uma resposta coesa a partir do contexto recuperado.
+-   `core/main.py`: Ponto de entrada. Gerencia o loop de interação com o usuário, chama o modelo para obter respostas e coordena a síntese e reprodução de áudio de forma assíncrona.
+-   `models/model.py`: Orquestra a lógica de resposta. Carrega o modelo treinado e implementa a cascata de fallbacks (busca direta -> modelo ML -> RAG).
+-   `training/train.py`: Script offline para treinar o modelo de classificação Keras e salvar os artefatos.
+-   `data/qa_data.py`: Gerencia a base de conhecimento. Carrega pares de pergunta/resposta de um dicionário local, de um cache (`qa_cache.json`) ou de uma API externa (configurada via `QA_API_URL`).
+-   `training/rag_index.py`: Ferramenta para ler os arquivos do projeto, dividi-los em pedaços (`chunks`), gerar embeddings vetoriais e construir o índice de busca (`data/index.faiss`).
+-   `services/rag_query.py`: Fornece a função `query()` para realizar uma busca de similaridade no índice FAISS e retornar os `chunks` de texto mais relevantes.
+-   `core/rag_pipeline.py`: Conecta a busca (RAG) a um Large Language Model (LLM) como o GPT da OpenAI para gerar uma resposta coesa a partir do contexto recuperado.
 -   `.gitignore`: Configurado para ignorar ambientes virtuais, caches e artefatos gerados, mantendo o repositório limpo.
 
 ---
@@ -232,3 +232,33 @@ GEMINI_API_KEY="sua-chave-gemini-aqui"
 -   **`GEMINI_API_KEY`**: Chave da API do Google AI Studio, necessária se `LLM_PROVIDER` for `"gemini"`.
 -   **`QA_API_URL`**: (Opcional) URL para especificar uma fonte externa para a base de conhecimento.
 -   **`TRANSFORMERS_NO_CUDA=1`**: (Opcional, via terminal) Variável de ambiente útil para forçar o uso de CPU em máquinas sem GPU, evitando erros com `sentence-transformers`.
+
+---
+
+### Estrutura de Diretórios
+
+A estrutura de diretórios foi organizada para separar as responsabilidades e facilitar a manutenção:
+
+-   `core/`: Contém a lógica principal e a orquestração do agente.
+    -   `main.py`: Ponto de entrada da aplicação, responsável pelo loop de interação com o usuário e pela interface de linha de comando (CLI).
+    -   `rag_pipeline.py`: Orquestra o pipeline de Geração Aumentada por Recuperação (RAG), montando o prompt e consultando o LLM.
+    -   `utils.py`: Funções utilitárias compartilhadas.
+-   `services/`: Módulos que fornecem serviços específicos.
+    -   `get_audio.py`: (Se aplicável) Lógica para captura de áudio.
+    -   `rag_query.py`: Serviço para consultar o índice vetorial FAISS e recuperar chunks de texto relevantes.
+-   `models/`: Contém os artefatos e a lógica do modelo de Machine Learning.
+    -   `model.h5`: O modelo de classificação de intenção treinado.
+    -   `tokenizer.json`: O tokenizer para o modelo.
+    -   `meta.json`: Metadados associados ao modelo ou ao índice RAG.
+    -   `model.py`: Carrega o modelo e o tokenizer, e contém a função `responder()` que encapsula a lógica de decisão.
+-   `data/`: Armazena os dados utilizados pelo agente.
+    -   `index.faiss`: O índice vetorial para o RAG.
+    -   `qa_data.py`: A base de conhecimento principal (perguntas e respostas).
+    -   `respostas.json`: Cache das respostas para acesso rápido.
+-   `training/`: Scripts para treinamento de modelos e criação de índices.
+    -   `train.py`: Script para treinar o modelo de classificação de intenção.
+    -   `rag_index.py`: Script para criar o índice FAISS a partir de uma base de código.
+-   `tts_cache/`: Diretório de cache para os arquivos de áudio sintetizados.
+-   `__pycache__/`: Cache de bytecode do Python.
+-   `requirements.txt`: Dependências do projeto.
+-   `README.md`: Este guia.

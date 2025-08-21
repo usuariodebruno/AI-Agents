@@ -12,7 +12,7 @@ import faiss
 DEFAULT_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 
 
-def load_index(index_path: str = "index.faiss", meta_path: str = "meta.json"):
+def load_index(index_path: str = "data/index.faiss", meta_path: str = "data/meta.json"):
     index = faiss.read_index(index_path)
     with open(meta_path, "r", encoding="utf-8") as f:
         metas = json.load(f)
@@ -20,7 +20,7 @@ def load_index(index_path: str = "index.faiss", meta_path: str = "meta.json"):
     return index, metas, model
 
 
-def query(query_text: str, index_path: str = "index.faiss", meta_path: str = "meta.json", k: int = 5):
+def query(query_text: str, index_path: str = "data/index.faiss", meta_path: str = "data/meta.json", k: int = 5):
     index, metas, model = load_index(index_path, meta_path)
     q_emb = model.encode(query_text)
     q = np.array([q_emb]).astype("float32")

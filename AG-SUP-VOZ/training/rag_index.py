@@ -123,8 +123,8 @@ if __name__ == "__main__":
     import argparse
     p = argparse.ArgumentParser()
     p.add_argument("root", nargs="?", default=".", help="pasta do projeto a indexar")
-    p.add_argument("--index", default="index.faiss")
-    p.add_argument("--meta", default="meta.json")
+    p.add_argument("--index", default="data/index.faiss")
+    p.add_argument("--meta", default="data/meta.json")
     p.add_argument("--model", default=DEFAULT_MODEL)
     p.add_argument("--batch-size", type=int, default=32, dest="batch_size", help="batch size para geração de embeddings")
     args = p.parse_args()

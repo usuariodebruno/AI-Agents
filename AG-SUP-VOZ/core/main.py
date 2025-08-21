@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from gtts import gTTS
-from model import responder, respostas
+from models.model import responder, respostas
 import threading
 import queue
 import os
@@ -15,6 +15,9 @@ import shutil
 import tempfile
 import subprocess
 import hashlib
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # tentar edge-tts para voz neural mais natural
 try:

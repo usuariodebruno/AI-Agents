@@ -7,14 +7,18 @@ import os
 import json
 import re
 import numpy as np
+import sys
 
-from qa_data import qa_pairs
-from utils import criar_tokenizer, texto_para_sequencia
-from rag_query import query as rag_query
+from data.qa_data import qa_pairs
+from core.utils import criar_tokenizer, texto_para_sequencia
+from services.rag_query import query as rag_query
+
+# Adicionando o diretório raiz do projeto ao sys.path para corrigir problemas de importação relativa após a modularização.
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # --- Configuração RAG e LLM ---
 LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "openai").lower()
-RAG_ENABLED = os.path.exists("index.faiss") and os.path.exists("meta.json")
+RAG_ENABLED = os.path.exists("data/index.faiss") and os.path.exists("data/meta.json")
 LLM_AVAILABLE = False
 
 # Configura o provedor de LLM selecionado
@@ -88,9 +92,9 @@ Etapa 4.  Após preencher tudo, revise as informações e clique no botão verde
 # --- Fim da Configuração RAG ---
 
 # Tentar carregar artefatos salvos
-MODEL_PATH = "model.h5"
-TOKENIZER_PATH = "tokenizer.json"
-RESPOSTAS_PATH = "respostas.json"
+MODEL_PATH = "models/model.h5"
+TOKENIZER_PATH = "models/tokenizer.json"
+RESPOSTAS_PATH = "data/respostas.json"
 
 if os.path.exists(MODEL_PATH) and os.path.exists(TOKENIZER_PATH) and os.path.exists(RESPOSTAS_PATH):
     import tensorflow as tf
@@ -269,3 +273,22 @@ def responder(texto_usuario):
     # 4. Resposta final de fallback
     print("[INFO] Fonte da resposta: Fallback Padrão.")
     return "Desculpe, não tenho certeza de como responder a isso. Pode reformular a pergunta?", []
+
+def _parse_llm_response(response: str) -> tuple[str, list[str]]:
+    """
+    Analisa a resposta do LLM para separar a resposta principal das sugestões.
+    Retorna uma tupla contendo (resposta_principal, lista_de_sugestoes).
+    """
+    sugestoes = []
+    # A regex busca por "SUGESTÕES:" (case-insensitive) e captura tudo depois
+    match = re.search(r"SUGESTÕES:\s*(.*)", response, re.IGNORECASE | re.DOTALL)
+    
+    if match:
+        resposta_principal = response[:match.start()].strip()
+        sugestoes_texto = match.group(1).strip()
+        # Divide as sugestões por nova linha e remove itens vazios ou marcadores
+        sugestoes = [s.strip().lstrip('-* ').strip() for s in sugestoes_texto.split('\n') if s.strip()]
+    else:
+        resposta_principal = response.strip()
+
+    return resposta_principal, sugestoes
