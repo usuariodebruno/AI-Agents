@@ -58,6 +58,7 @@ jsonschema-specifications==2025.4.1
 keras==3.11.2
 kubernetes==33.1.0
 langchain==0.3.27
+langchain-community==0.0.34
 langchain-core==0.3.74
 langchain-text-splitters==0.3.9
 langsmith==0.4.15

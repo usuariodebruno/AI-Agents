@@ -1,0 +1,43 @@
+# Cache de áudio
+**/tts_cache/
+
+# Ambientes virtuais
+**/.venv
+**/.venv_docling/
+**/env/
+**/venv/
+
+# Arquivos de cache do Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Artefatos gerados (modelo, tokenizer, índice)
+**/model.h5
+**/tokenizer.json
+**/respostas.json
+**/index.faiss
+**/meta.json
+
+# Cache de dados
+# Cache de dados
+qa_cache.json
+# Arquivos de log
+# Arquivos de log
+*.log
+# Configurações de IDE
+# Configurações de IDE
+.vscode/
+.idea/
+# Arquivos de sistema operacional
+# Arquivos de sistema operacional
+.DS_Store
+# Variáveis de ambiente
+.env.*
+!*.env.example
+!*.env.example
+
+# Documentação gerada
+# docling/guias_sigeduc/
+# **/guias_sigeduc/
